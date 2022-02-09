@@ -30,3 +30,8 @@ body {
 input[type=number] {
     width: 64px;
 }
+
+#fletchingShapePreview {
+    width: 128px;
+    height: 96px;
+}
