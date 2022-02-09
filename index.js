@@ -150,7 +150,7 @@ scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 directionalLight.position.set(200, 500, 300);
 scene.add(directionalLight)
-let arrow = new Arrow(28, 0.204, 3, 1, "#0000FF", "#00ffff", 0xffff00, 6.5,"#ff0000");
+let arrow = new Arrow(28, 0.204, 3, 1, "#0000FF", "#00ffff", 0xffff00, 6.5, "#ff0000");
 
 camera.position.z = 30;
 
@@ -177,8 +177,10 @@ for (let i = 0; i < inputs.length; i++) {
         if (input.id == "fletchingColor") arrow.fletchingColor = input.value;
         if (input.id == "cockVaneColor") arrow.cockVaneColor = input.value;
         if (input.id == "nockColor") arrow.nockColor = input.value;
-        if(input.id =="length") arrow.length = input.value;
-        if(input.id == "diameter") arrow.outerDiameter = input.value;
+        if (input.id == "length") arrow.length = input.value;
+        if (input.id == "diameter") arrow.outerDiameter = input.value;
+        if (input.id == "wrapLength") arrow.wrapLength = input.value;
+        if (input.id == "numberOfVanes") arrow.numberOfVanes = input.value;
 
         arrow = new Arrow(arrow.length, arrow.outerDiameter, arrow.numberOfVanes, arrow.vaneDistanceFromBack, arrow.fletchingColor, arrow.cockVaneColor, arrow.wrapColor, arrow.wrapLength, arrow.nockColor);
     })
