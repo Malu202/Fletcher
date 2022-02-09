@@ -1,5 +1,5 @@
 
-import * as THREE from './node_modules/three/build/three.module.js';
+import * as THREE from '/node_modules/three/build/three.module.js';
 class Arrow {
     constructor(length, outerDiameter, numberOfVanes, vaneDistanceFromBack, fletchingColor, cockVaneColor, wrapColor, wrapLength, nockColor) {
         this.length = length;
