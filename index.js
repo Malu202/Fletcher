@@ -2,7 +2,7 @@
 import * as THREE from './node_modules/three/build/three.module.js';
 let animationRunning = false;
 class Arrow {
-    constructor(length, outerDiameter, numberOfVanes, vaneDistanceFromBack, fletchingColor, cockVaneColor, wrapColor, wrapLength, nockColor, fletchingGeometry) {
+    constructor(length, outerDiameter, numberOfVanes, vaneDistanceFromBack, fletchingColor, cockVaneColor, wrapColor, wrapLength, nockColor, fletchingGeometry, fletchingSize) {
         this.length = length;
         this.outerDiameter = outerDiameter;
         this.numberOfVanes = numberOfVanes;
@@ -13,12 +13,13 @@ class Arrow {
         this.wrapLength = wrapLength;
         this.nockColor = nockColor;
         this.fletchingGeometry = fletchingGeometry;
-        this.createGeometry(length, outerDiameter, numberOfVanes, vaneDistanceFromBack, fletchingColor, cockVaneColor, wrapColor, wrapLength, nockColor, fletchingGeometry);
+        this.fletchingSize = fletchingSize
+        this.createGeometry(length, outerDiameter, numberOfVanes, vaneDistanceFromBack, fletchingColor, cockVaneColor, wrapColor, wrapLength, nockColor, fletchingGeometry, fletchingSize);
     }
     destroy() {
         scene.remove(this.group);
     }
-    createGeometry(length, outerDiameter, numberOfVanes, vaneDistanceFromBack, vaneColor, cockVaneColor, wrapColor, wrapLength, nockColor, fletchingGeometry) {
+    createGeometry(length, outerDiameter, numberOfVanes, vaneDistanceFromBack, vaneColor, cockVaneColor, wrapColor, wrapLength, nockColor, fletchingGeometry, fletchingSize) {
         this.group = new THREE.Group();
 
         this.shaft = this.createGenericShaft(outerDiameter, length, 0x444444, wrapColor, wrapLength);
@@ -29,15 +30,14 @@ class Arrow {
 
         this.nock = this.createGenericNock(outerDiameter, 0.4, nockColor, length);
         let self = this;
-        this.createGenericVanes(null, numberOfVanes, vaneColor, cockVaneColor, 3, vaneDistanceFromBack, length, outerDiameter, fletchingGeometry, function (vanes) {
+        this.createGenericVanes(null, numberOfVanes, vaneColor, cockVaneColor, fletchingSize, vaneDistanceFromBack, length, outerDiameter, fletchingGeometry, function (vanes) {
             self.vanes = vanes;
-            // self.vanes.scale.x = 10;
-            // self.vanes.scale.y = 10;
-            // self.vanes.scale.z = 10;
 
             self.group.add(self.tip, self.shaft, self.vanes, self.nock);
-            self.group.rotation.z += 90;
+            self.group.rotation.x += 90;
             scene.add(self.group);
+
+
             startAnimation();
         });
 
@@ -112,7 +112,7 @@ class Arrow {
                 createdVanes++;
                 if (createdVanes == amount) callback(vanes);
             }
-            else generateFletchingShape(fletchingGeometry, vaneMaterial, function (vane) {
+            else generateFletchingShape(length, fletchingGeometry, vaneMaterial, function (vane) {
                 vane.position.set(radius * Math.sin(angleOffset * i), -shaftLength / 2 + position, radius * Math.cos(angleOffset * i));
                 vane.rotation.y += angleOffset * i;
                 vanes.add(vane);
@@ -172,16 +172,21 @@ scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 directionalLight.position.set(200, 500, 300);
 scene.add(directionalLight)
-let arrow = new Arrow(28, 0.204, 3, 1, "#0000FF", "#00ffff", 0xffff00, 6.5, "#ff0000", null);
+let arrow = new Arrow(28, 0.204, 3, 1, "#0000FF", "#00ffff", 0xffff00, 6.5, "#ff0000", null, 3);
 
 camera.position.z = 30;
 
-
-function animate() {
+let start;
+function animate(timestamp) {
+    if (start === undefined) {
+        start = timestamp;
+    }
+    const elapsed = timestamp - start;
+    start = timestamp;
     if (animationRunning) requestAnimationFrame(animate);
     else return;
-    arrow.group.rotation.y += 0.01;
-    arrow.vanes.rotation.y += 0.02;
+    arrow.group.rotation.z -= 0.001 * elapsed;
+    arrow.vanes.rotation.y -= 0.002 * elapsed;
 
     renderer.render(scene, camera);
 }
@@ -211,8 +216,10 @@ for (let i = 0; i < inputs.length; i++) {
         if (input.id == "wrapLength") arrow.wrapLength = input.value;
         if (input.id == "numberOfVanes") arrow.numberOfVanes = input.value;
         if (input.id == "fletchingShape") arrow.fletchingGeometry = input.files[0];
+        if (input.id == "fletchingSize") arrow.fletchingSize = input.value;
 
-        arrow = new Arrow(arrow.length, arrow.outerDiameter, arrow.numberOfVanes, arrow.vaneDistanceFromBack, arrow.fletchingColor, arrow.cockVaneColor, arrow.wrapColor, arrow.wrapLength, arrow.nockColor, arrow.fletchingGeometry);
+
+        arrow = new Arrow(arrow.length, arrow.outerDiameter, arrow.numberOfVanes, arrow.vaneDistanceFromBack, arrow.fletchingColor, arrow.cockVaneColor, arrow.wrapColor, arrow.wrapLength, arrow.nockColor, arrow.fletchingGeometry, arrow.fletchingSize);
     })
 }
 
@@ -223,11 +230,11 @@ fletchingShapePreview.height = fletchingShapePreview.clientHeight;
 fletchingShapePreviewContext.fillStyle = "white";
 fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
 
-function generateFletchingShape(file, vaneMaterial, callback) {
-    fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
+function generateFletchingShape(length, file, vaneMaterial, callback) {
 
     var img = new Image;
     img.onload = function () {
+        fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
         let canvasAspectRatio = fletchingShapePreview.width / fletchingShapePreview.height;
         let imageAspectRatio = img.width / img.height;
         if (imageAspectRatio > canvasAspectRatio) fletchingShapePreviewContext.drawImage(img, 0, 0, fletchingShapePreview.width, fletchingShapePreview.width / imageAspectRatio);
@@ -276,11 +283,13 @@ function generateFletchingShape(file, vaneMaterial, callback) {
         let x = 0, y = 0;
         let vaneShape = new THREE.Shape();
 
-        vaneShape.moveTo(0, yContour[0]);
+        vaneShape.moveTo(0, (1 - yContour[0]) * length);
         for (let i = 1; i < yContour.length; i++) {
-            let x = i * stepsize;
-            fletchingShapePreviewContext.lineTo(x, yContour[i]);
+            let x = i * stepsize * length - length;
+            vaneShape.lineTo(x, (1 - yContour[i]) * length);
         }
+        vaneShape.lineTo(0, (1 - yContour[0]) * length);
+
         const geometry = new THREE.ExtrudeGeometry(vaneShape, {
             steps: 1,
             depth: 0.01,
