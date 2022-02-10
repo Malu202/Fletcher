@@ -222,7 +222,7 @@ for (let i = 0; i < inputs.length; i++) {
         arrow = new Arrow(arrow.length, arrow.outerDiameter, arrow.numberOfVanes, arrow.vaneDistanceFromBack, arrow.fletchingColor, arrow.cockVaneColor, arrow.wrapColor, arrow.wrapLength, arrow.nockColor, arrow.fletchingGeometry, arrow.fletchingSize);
     })
 }
-
+let threshold = document.getElementById("threshold");
 let fletchingShapePreview = document.getElementById("fletchingShapePreview");
 let fletchingShapePreviewContext = fletchingShapePreview.getContext("2d");
 fletchingShapePreview.width = fletchingShapePreview.clientWidth;
@@ -255,7 +255,7 @@ function generateFletchingShape(length, file, vaneMaterial, callback) {
         for (let i = 0; i < blackAndWhiteImage.data.length; i += 4) {
             let count = blackAndWhiteImage.data[i] + blackAndWhiteImage.data[i + 1] + blackAndWhiteImage.data[i + 2];
             let colour = 0;
-            if (count > 383) colour = 255;
+            if (count > 255 * 3 * threshold.value) colour = 255;
             else lowestPoint = i;
 
             blackAndWhiteImage.data[i] = colour;
