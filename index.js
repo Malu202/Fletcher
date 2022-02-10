@@ -147,7 +147,7 @@ class Arrow {
         var material = new THREE.MeshPhongMaterial({ color: color });
 
         let nock = new THREE.Mesh(geometry, material);
-        nock.position.y = -shaftLength / 2 - length / 2;
+        nock.position.y = -shaftLength / 2 - length / 2 - 0.01;
         return nock;
     }
 
@@ -172,7 +172,7 @@ scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 directionalLight.position.set(200, 500, 300);
 scene.add(directionalLight)
-let arrow = new Arrow(28, 0.204, 3, 1, "#0000FF", "#00ffff", 0xffff00, 6.5, "#ff0000", null, 3);
+let arrow = new Arrow(28, 0.204, 3, 1, "#FFFF00", "#000000", "#FFFF00", 6.5, "#FFFF00", null, 1.75);
 
 camera.position.z = 30;
 
