@@ -229,16 +229,25 @@ fletchingShapePreview.width = fletchingShapePreview.clientWidth;
 fletchingShapePreview.height = fletchingShapePreview.clientHeight;
 fletchingShapePreviewContext.fillStyle = "white";
 fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
+let flipFletching = document.getElementById("flip");
 
 function generateFletchingShape(length, file, vaneMaterial, callback) {
 
     var img = new Image;
     img.onload = function () {
         fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
+        if (flipFletching.checked) {
+            fletchingShapePreviewContext.save();
+            fletchingShapePreviewContext.translate(fletchingShapePreview.width, 0);
+            fletchingShapePreviewContext.scale(-1, 1);
+        }
         let canvasAspectRatio = fletchingShapePreview.width / fletchingShapePreview.height;
         let imageAspectRatio = img.width / img.height;
         if (imageAspectRatio > canvasAspectRatio) fletchingShapePreviewContext.drawImage(img, 0, 0, fletchingShapePreview.width, fletchingShapePreview.width / imageAspectRatio);
         else fletchingShapePreviewContext.drawImage(img, 0, 0, fletchingShapePreview.height * imageAspectRatio, fletchingShapePreview.height);
+        if (flipFletching.checked) {
+            fletchingShapePreviewContext.restore();
+        }
 
         let blackAndWhiteImage = fletchingShapePreviewContext.getImageData(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
 
