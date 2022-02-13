@@ -30,19 +30,18 @@ class Arrow {
 
         this.nock = this.createGenericNock(outerDiameter, 0.4, nockColor, length);
         let self = this;
-        this.createGenericVanes(null, numberOfVanes, vaneColor, cockVaneColor, fletchingSize, vaneDistanceFromBack, length, outerDiameter, fletchingGeometry, function (vanes) {
-            self.vanes = vanes;
+        self.vanes = this.createGenericVanes(null, numberOfVanes, vaneColor, cockVaneColor, fletchingSize, vaneDistanceFromBack, length, outerDiameter, fletchingGeometry);
 
-            self.group.add(self.tip, self.shaft, self.vanes, self.nock);
-            self.group.rotation.x += 90;
-            scene.add(self.group);
-
-
-            startAnimation();
-        });
+        self.group.add(self.tip, self.shaft, self.vanes, self.nock);
+        self.group.rotation.x += 90;
+        scene.add(self.group);
 
 
-    }
+        startAnimation();
+    };
+
+
+
 
     createGenericShaft(outerDiameter, length, shaftColor, wrapColor, wrapLength) {
 
@@ -99,7 +98,6 @@ class Arrow {
         const angleOffset = 2 * Math.PI / amount;
         let vanes = new THREE.Object3D();
         let radius = -outerDiameter / 2;
-        let createdVanes = 0;
         for (let i = 0; i < amount; i++) {
             if (i == amount - 1) color = cockVaneColor;
             let vaneMaterial = new THREE.MeshPhongMaterial({ color: color });
@@ -109,19 +107,15 @@ class Arrow {
                 vane.position.set(radius * Math.sin(angleOffset * i), -shaftLength / 2 + position, radius * Math.cos(angleOffset * i));
                 vane.rotation.y += angleOffset * i;
                 vanes.add(vane);
-                createdVanes++;
-                if (createdVanes == amount) callback(vanes);
             }
-            else generateFletchingShape(length, fletchingGeometry, vaneMaterial, function (vane) {
+            else {
+                let vane = generateFletchingShape(length, fletchingGeometry, vaneMaterial);
                 vane.position.set(radius * Math.sin(angleOffset * i), -shaftLength / 2 + position, radius * Math.cos(angleOffset * i));
                 vane.rotation.y += angleOffset * i;
                 vanes.add(vane);
-                createdVanes++;
-                if (createdVanes == amount) callback(vanes);
-            });
-
-
+            }
         }
+        return vanes;
     }
     createGenericTriangleVane(length, vaneMaterial) {
         const x = 0, y = 0;
@@ -175,20 +169,21 @@ scene.add(directionalLight);
 
 let arrow;
 let img = new Image();
-img.onload = function(){
+img.onload = function () {
     arrow = new Arrow(parseFloat(document.getElementById("length").value),
-    parseFloat(document.getElementById("diameter").value),
-    parseFloat(document.getElementById("numberOfVanes").value),
-    parseFloat(document.getElementById("fletchingPosition").value),
-    document.getElementById("fletchingColor").value,
-    document.getElementById("cockVaneColor").value,
-    document.getElementById("wrapColor").value,
-    parseFloat(document.getElementById("wrapLength").value),
-    document.getElementById("nockColor").value,
-    null,
-    parseFloat(document.getElementById("fletchingSize").value));
+        parseFloat(document.getElementById("diameter").value),
+        parseFloat(document.getElementById("numberOfVanes").value),
+        parseFloat(document.getElementById("fletchingPosition").value),
+        document.getElementById("fletchingColor").value,
+        document.getElementById("cockVaneColor").value,
+        document.getElementById("wrapColor").value,
+        parseFloat(document.getElementById("wrapLength").value),
+        document.getElementById("nockColor").value,
+        img,
+        parseFloat(document.getElementById("fletchingSize").value));
+
 }
-    
+
 img.src = "./textures/fletching/bng.png";
 camera.position.z = 30;
 
@@ -215,31 +210,41 @@ function startAnimation() {
 function stopAnimation() {
     animationRunning = false;
 }
-startAnimation();
 
 let inputs = document.getElementsByTagName("input");
 for (let i = 0; i < inputs.length; i++) {
-    inputs[i].addEventListener("change", function (event) {
-        let input = event.target;
-        stopAnimation();
-        arrow.destroy();
-        if (input.id == "wrapColor") arrow.wrapColor = input.value;
-        if (input.id == "fletchingColor") arrow.fletchingColor = input.value;
-        if (input.id == "cockVaneColor") arrow.cockVaneColor = input.value;
-        if (input.id == "nockColor") arrow.nockColor = input.value;
-        if (input.id == "length") arrow.length = input.value;
-        if (input.id == "diameter") arrow.outerDiameter = input.value;
-        if (input.id == "wrapLength") arrow.wrapLength = input.value;
-        if (input.id == "numberOfVanes") arrow.numberOfVanes = input.value;
-        if (input.id == "fletchingShape") arrow.fletchingGeometry = input.files[0];
-        if (input.id == "fletchingSize") arrow.fletchingSize = input.value;
-        if (input.id == "fletchingPosition") arrow.vaneDistanceFromBack = parseFloat(input.value);
-
-
-
-        arrow = new Arrow(arrow.length, arrow.outerDiameter, arrow.numberOfVanes, arrow.vaneDistanceFromBack, arrow.fletchingColor, arrow.cockVaneColor, arrow.wrapColor, arrow.wrapLength, arrow.nockColor, arrow.fletchingGeometry, arrow.fletchingSize);
-    })
+    inputs[i].addEventListener("change", updateArrowGeometry)
 }
+
+function updateArrowGeometry(event) {
+    let input = event.target;
+    stopAnimation();
+    arrow.destroy();
+    if (input.id == "wrapColor") arrow.wrapColor = input.value;
+    if (input.id == "fletchingColor") arrow.fletchingColor = input.value;
+    if (input.id == "cockVaneColor") arrow.cockVaneColor = input.value;
+    if (input.id == "nockColor") arrow.nockColor = input.value;
+    if (input.id == "length") arrow.length = input.value;
+    if (input.id == "diameter") arrow.outerDiameter = input.value;
+    if (input.id == "wrapLength") arrow.wrapLength = input.value;
+    if (input.id == "numberOfVanes") arrow.numberOfVanes = input.value;
+    if (input.id == "fletchingShape") {
+
+        let img = new Image();
+        img.onload = function () {
+            let dummyEvent = { target: { id: null } };
+            updateArrowGeometry(dummyEvent);
+        };
+        img.src = URL.createObjectURL(input.files[0]);
+        arrow.fletchingGeometry = img;
+    }
+    if (input.id == "fletchingSize") arrow.fletchingSize = input.value;
+    if (input.id == "fletchingPosition") arrow.vaneDistanceFromBack = parseFloat(input.value);
+
+
+    arrow = new Arrow(arrow.length, arrow.outerDiameter, arrow.numberOfVanes, arrow.vaneDistanceFromBack, arrow.fletchingColor, arrow.cockVaneColor, arrow.wrapColor, arrow.wrapLength, arrow.nockColor, arrow.fletchingGeometry, arrow.fletchingSize);
+}
+
 let threshold = document.getElementById("threshold");
 let fletchingShapePreview = document.getElementById("fletchingShapePreview");
 let fletchingShapePreviewContext = fletchingShapePreview.getContext("2d");
@@ -249,104 +254,98 @@ fletchingShapePreviewContext.fillStyle = "white";
 fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
 let flipFletching = document.getElementById("flip");
 
-function generateFletchingShape(length, file, vaneMaterial, callback) {
+function generateFletchingShape(length, img, vaneMaterial) {
 
-    var img = new Image;
-    img.onload = function () {
-        fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
-        if (flipFletching.checked) {
-            fletchingShapePreviewContext.save();
-            fletchingShapePreviewContext.translate(fletchingShapePreview.width, 0);
-            fletchingShapePreviewContext.scale(-1, 1);
-        }
-        let canvasAspectRatio = fletchingShapePreview.width / fletchingShapePreview.height;
-        let imageAspectRatio = img.width / img.height;
-        if (imageAspectRatio > canvasAspectRatio) fletchingShapePreviewContext.drawImage(img, 0, 0, fletchingShapePreview.width, fletchingShapePreview.width / imageAspectRatio);
-        else fletchingShapePreviewContext.drawImage(img, 0, 0, fletchingShapePreview.height * imageAspectRatio, fletchingShapePreview.height);
-        if (flipFletching.checked) {
-            fletchingShapePreviewContext.restore();
-        }
-
-        let blackAndWhiteImage = fletchingShapePreviewContext.getImageData(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
-
-        let lowestPoint = 0;
-        for (let i = 0; i < blackAndWhiteImage.data.length; i += 4) {
-            let count = blackAndWhiteImage.data[i] + blackAndWhiteImage.data[i + 1] + blackAndWhiteImage.data[i + 2];
-            let colour = 0;
-            if (count > 255 * 3 * threshold.value) colour = 255;
-            else lowestPoint = i;
-
-            blackAndWhiteImage.data[i] = colour;
-            blackAndWhiteImage.data[i + 1] = colour;
-            blackAndWhiteImage.data[i + 2] = colour;
-            blackAndWhiteImage.data[i + 3] = 255;
-        }
-        fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
-        fletchingShapePreviewContext.putImageData(blackAndWhiteImage, 0, blackAndWhiteImage.height - lowestPoint / (4 * blackAndWhiteImage.width));
-        blackAndWhiteImage = fletchingShapePreviewContext.getImageData(0, 0, fletchingShapePreview.width, fletchingShapePreview.height)
-
-        let yContour = [];
-        for (let x = 0; x < fletchingShapePreview.width; x++) {
-            for (let y = 0; y < fletchingShapePreview.height; y++) {
-                let i = (x + y * blackAndWhiteImage.width) * 4;
-                if (blackAndWhiteImage.data[i] < 128) {
-                    yContour.push(y / blackAndWhiteImage.height);
-                    break;
-                }
-            }
-            if (yContour.length != x + 1) yContour.push(1);
-        }
-        fletchingShapePreviewContext.strokeStyle = "red";
-        fletchingShapePreviewContext.beginPath();
-        fletchingShapePreviewContext.moveTo(0, yContour[0] * blackAndWhiteImage.height)
-        let stepsize = 1 / (yContour.length - 1);
-        for (let i = 1; i < yContour.length; i++) {
-            let x = i * stepsize * blackAndWhiteImage.width;
-            fletchingShapePreviewContext.lineTo(x, yContour[i] * blackAndWhiteImage.height);
-        }
-        fletchingShapePreviewContext.closePath();
-        fletchingShapePreviewContext.stroke();
-
-        let fletchingLeadingEdgeIndex = 0;
-        for (let i = 0; i < yContour.length - 1; i++) {
-            if (yContour[i + 1] != 1) {
-                fletchingLeadingEdgeIndex = i;
-                break;
-            }
-        }
-        let fletchingTrailingEdgeIndex = yContour.length - 1;
-        for (let i = yContour.length - 1; i > 0; i--) {
-            if (yContour[i - 1] != 1) {
-                fletchingTrailingEdgeIndex = i;
-                break;
-            }
-        }
-        yContour = yContour.slice(fletchingLeadingEdgeIndex, fletchingTrailingEdgeIndex + 1);
-        stepsize = 1 / (yContour.length - 1);
-
-        let vaneShape = new THREE.Shape();
-
-        vaneShape.moveTo(-length, (1 - yContour[0]) * length);
-        console.log("Move to: " + 0 + ", " + (1 - yContour[0]) * length);
-
-        for (let i = 1; i < yContour.length; i++) {
-            let x = i * stepsize * length - length;
-            vaneShape.lineTo(x, (1 - yContour[i]) * length);
-            console.log("Line to: " + x + ", " + (1 - yContour[i]) * length)
-        }
-        vaneShape.lineTo(0, (1 - yContour[0]) * length);
-
-        const geometry = new THREE.ExtrudeGeometry(vaneShape, {
-            steps: 1,
-            depth: 0.01,
-            bevelEnabled: false
-        });
-        const vane = new THREE.Mesh(geometry, vaneMaterial);
-        vane.rotation.z -= Math.PI / 2;
-        vane.rotation.y += Math.PI / 2;
-        callback(vane);
+    fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
+    if (flipFletching.checked) {
+        fletchingShapePreviewContext.save();
+        fletchingShapePreviewContext.translate(fletchingShapePreview.width, 0);
+        fletchingShapePreviewContext.scale(-1, 1);
     }
-    img.src = URL.createObjectURL(file);
+    let canvasAspectRatio = fletchingShapePreview.width / fletchingShapePreview.height;
+    let imageAspectRatio = img.width / img.height;
+    if (imageAspectRatio > canvasAspectRatio) fletchingShapePreviewContext.drawImage(img, 0, 0, fletchingShapePreview.width, fletchingShapePreview.width / imageAspectRatio);
+    else fletchingShapePreviewContext.drawImage(img, 0, 0, fletchingShapePreview.height * imageAspectRatio, fletchingShapePreview.height);
+    if (flipFletching.checked) {
+        fletchingShapePreviewContext.restore();
+    }
+
+    let blackAndWhiteImage = fletchingShapePreviewContext.getImageData(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
+
+    let lowestPoint = 0;
+    for (let i = 0; i < blackAndWhiteImage.data.length; i += 4) {
+        let count = blackAndWhiteImage.data[i] + blackAndWhiteImage.data[i + 1] + blackAndWhiteImage.data[i + 2];
+        let colour = 0;
+        if (count > 255 * 3 * threshold.value) colour = 255;
+        else lowestPoint = i;
+
+        blackAndWhiteImage.data[i] = colour;
+        blackAndWhiteImage.data[i + 1] = colour;
+        blackAndWhiteImage.data[i + 2] = colour;
+        blackAndWhiteImage.data[i + 3] = 255;
+    }
+    fletchingShapePreviewContext.fillRect(0, 0, fletchingShapePreview.width, fletchingShapePreview.height);
+    fletchingShapePreviewContext.putImageData(blackAndWhiteImage, 0, blackAndWhiteImage.height - lowestPoint / (4 * blackAndWhiteImage.width));
+    blackAndWhiteImage = fletchingShapePreviewContext.getImageData(0, 0, fletchingShapePreview.width, fletchingShapePreview.height)
+
+    let yContour = [];
+    for (let x = 0; x < fletchingShapePreview.width; x++) {
+        for (let y = 0; y < fletchingShapePreview.height; y++) {
+            let i = (x + y * blackAndWhiteImage.width) * 4;
+            if (blackAndWhiteImage.data[i] < 128) {
+                yContour.push(y / blackAndWhiteImage.height);
+                break;
+            }
+        }
+        if (yContour.length != x + 1) yContour.push(1);
+    }
+    fletchingShapePreviewContext.strokeStyle = "red";
+    fletchingShapePreviewContext.beginPath();
+    fletchingShapePreviewContext.moveTo(0, yContour[0] * blackAndWhiteImage.height)
+    let stepsize = 1 / (yContour.length - 1);
+    for (let i = 1; i < yContour.length; i++) {
+        let x = i * stepsize * blackAndWhiteImage.width;
+        fletchingShapePreviewContext.lineTo(x, yContour[i] * blackAndWhiteImage.height);
+    }
+    fletchingShapePreviewContext.closePath();
+    fletchingShapePreviewContext.stroke();
+
+    let fletchingLeadingEdgeIndex = 0;
+    for (let i = 0; i < yContour.length - 1; i++) {
+        if (yContour[i + 1] != 1) {
+            fletchingLeadingEdgeIndex = i;
+            break;
+        }
+    }
+    let fletchingTrailingEdgeIndex = yContour.length - 1;
+    for (let i = yContour.length - 1; i > 0; i--) {
+        if (yContour[i - 1] != 1) {
+            fletchingTrailingEdgeIndex = i;
+            break;
+        }
+    }
+    yContour = yContour.slice(fletchingLeadingEdgeIndex, fletchingTrailingEdgeIndex + 1);
+    stepsize = 1 / (yContour.length - 1);
+
+    let vaneShape = new THREE.Shape();
+
+    vaneShape.moveTo(-length, (1 - yContour[0]) * length);
+
+    for (let i = 1; i < yContour.length; i++) {
+        let x = i * stepsize * length - length;
+        vaneShape.lineTo(x, (1 - yContour[i]) * length);
+    }
+    vaneShape.lineTo(0, (1 - yContour[0]) * length);
+
+    const geometry = new THREE.ExtrudeGeometry(vaneShape, {
+        steps: 1,
+        depth: 0.01,
+        bevelEnabled: false
+    });
+    const vane = new THREE.Mesh(geometry, vaneMaterial);
+    vane.rotation.z -= Math.PI / 2;
+    vane.rotation.y += Math.PI / 2;
+    return vane;
 }
 
 
