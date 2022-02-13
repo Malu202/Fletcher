@@ -217,6 +217,8 @@ for (let i = 0; i < inputs.length; i++) {
         if (input.id == "numberOfVanes") arrow.numberOfVanes = input.value;
         if (input.id == "fletchingShape") arrow.fletchingGeometry = input.files[0];
         if (input.id == "fletchingSize") arrow.fletchingSize = input.value;
+        if (input.id == "fletchingPosition") arrow.vaneDistanceFromBack = parseFloat(input.value);
+
 
 
         arrow = new Arrow(arrow.length, arrow.outerDiameter, arrow.numberOfVanes, arrow.vaneDistanceFromBack, arrow.fletchingColor, arrow.cockVaneColor, arrow.wrapColor, arrow.wrapLength, arrow.nockColor, arrow.fletchingGeometry, arrow.fletchingSize);
@@ -281,7 +283,7 @@ function generateFletchingShape(length, file, vaneMaterial, callback) {
         fletchingShapePreviewContext.strokeStyle = "red";
         fletchingShapePreviewContext.beginPath();
         fletchingShapePreviewContext.moveTo(0, yContour[0] * blackAndWhiteImage.height)
-        let stepsize = 1 / yContour.length;
+        let stepsize = 1 / (yContour.length-1);
         for (let i = 1; i < yContour.length; i++) {
             let x = i * stepsize * blackAndWhiteImage.width;
             fletchingShapePreviewContext.lineTo(x, yContour[i] * blackAndWhiteImage.height);
@@ -289,13 +291,32 @@ function generateFletchingShape(length, file, vaneMaterial, callback) {
         fletchingShapePreviewContext.closePath();
         fletchingShapePreviewContext.stroke();
 
-        let x = 0, y = 0;
+        let fletchingLeadingEdgeIndex=0;
+        for(let i = 0; i<yContour.length-1;i++){
+            if(yContour[i+1]!=1){
+                fletchingLeadingEdgeIndex = i;
+                break;
+            }
+        }
+        let fletchingTrailingEdgeIndex = yContour.length-1;
+        for(let i = yContour.length-1; i>0;i--){
+            if(yContour[i-1]!=1){
+                fletchingTrailingEdgeIndex = i;
+                break;
+            }
+        }
+        yContour = yContour.slice(fletchingLeadingEdgeIndex, fletchingTrailingEdgeIndex+1);
+        stepsize = 1 / (yContour.length-1);
+
         let vaneShape = new THREE.Shape();
 
-        vaneShape.moveTo(0, (1 - yContour[0]) * length);
+        vaneShape.moveTo(-length, (1 - yContour[0]) * length);
+        console.log("Move to: " + 0 + ", " + (1 - yContour[0]) * length);
+
         for (let i = 1; i < yContour.length; i++) {
             let x = i * stepsize * length - length;
             vaneShape.lineTo(x, (1 - yContour[i]) * length);
+            console.log("Line to: " + x + ", " + (1 - yContour[i]) * length)
         }
         vaneShape.lineTo(0, (1 - yContour[0]) * length);
 
