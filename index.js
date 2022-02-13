@@ -171,9 +171,25 @@ scene.add(ambientLight);
 
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 directionalLight.position.set(200, 500, 300);
-scene.add(directionalLight)
-let arrow = new Arrow(28, 0.204, 3, 1, "#FFFF00", "#000000", "#FFFF00", 6.5, "#FFFF00", null, 1.75);
+scene.add(directionalLight);
 
+let arrow;
+let img = new Image();
+img.onload = function(){
+    arrow = new Arrow(parseFloat(document.getElementById("length").value),
+    parseFloat(document.getElementById("diameter").value),
+    parseFloat(document.getElementById("numberOfVanes").value),
+    parseFloat(document.getElementById("fletchingPosition").value),
+    document.getElementById("fletchingColor").value,
+    document.getElementById("cockVaneColor").value,
+    document.getElementById("wrapColor").value,
+    parseFloat(document.getElementById("wrapLength").value),
+    document.getElementById("nockColor").value,
+    null,
+    parseFloat(document.getElementById("fletchingSize").value));
+}
+    
+img.src = "./textures/fletching/bng.png";
 camera.position.z = 30;
 
 let start;
@@ -283,7 +299,7 @@ function generateFletchingShape(length, file, vaneMaterial, callback) {
         fletchingShapePreviewContext.strokeStyle = "red";
         fletchingShapePreviewContext.beginPath();
         fletchingShapePreviewContext.moveTo(0, yContour[0] * blackAndWhiteImage.height)
-        let stepsize = 1 / (yContour.length-1);
+        let stepsize = 1 / (yContour.length - 1);
         for (let i = 1; i < yContour.length; i++) {
             let x = i * stepsize * blackAndWhiteImage.width;
             fletchingShapePreviewContext.lineTo(x, yContour[i] * blackAndWhiteImage.height);
@@ -291,22 +307,22 @@ function generateFletchingShape(length, file, vaneMaterial, callback) {
         fletchingShapePreviewContext.closePath();
         fletchingShapePreviewContext.stroke();
 
-        let fletchingLeadingEdgeIndex=0;
-        for(let i = 0; i<yContour.length-1;i++){
-            if(yContour[i+1]!=1){
+        let fletchingLeadingEdgeIndex = 0;
+        for (let i = 0; i < yContour.length - 1; i++) {
+            if (yContour[i + 1] != 1) {
                 fletchingLeadingEdgeIndex = i;
                 break;
             }
         }
-        let fletchingTrailingEdgeIndex = yContour.length-1;
-        for(let i = yContour.length-1; i>0;i--){
-            if(yContour[i-1]!=1){
+        let fletchingTrailingEdgeIndex = yContour.length - 1;
+        for (let i = yContour.length - 1; i > 0; i--) {
+            if (yContour[i - 1] != 1) {
                 fletchingTrailingEdgeIndex = i;
                 break;
             }
         }
-        yContour = yContour.slice(fletchingLeadingEdgeIndex, fletchingTrailingEdgeIndex+1);
-        stepsize = 1 / (yContour.length-1);
+        yContour = yContour.slice(fletchingLeadingEdgeIndex, fletchingTrailingEdgeIndex + 1);
+        stepsize = 1 / (yContour.length - 1);
 
         let vaneShape = new THREE.Shape();
 
@@ -332,3 +348,22 @@ function generateFletchingShape(length, file, vaneMaterial, callback) {
     }
     img.src = URL.createObjectURL(file);
 }
+
+
+let closeButton = document.getElementById("closeButton");
+let openButton = document.getElementById("openButton");
+let sidebar = document.getElementById("sidebar");
+
+closeButton.addEventListener("click", function (e) {
+    e.stopPropagation();
+    closeButton.style.display = "none";
+    openButton.style.display = "block";
+    sidebar.style.left = sidebar.clientWidth * -0.9 + "px";
+});
+
+openButton.addEventListener("click", function (e) {
+    e.stopPropagation();
+    closeButton.style.display = "block";
+    openButton.style.display = "none";
+    sidebar.style.left = 0;
+});

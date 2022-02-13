@@ -12,6 +12,8 @@
 
 <body>
     <div id="sidebar">
+        <button id="closeButton">◄</button>
+        <button id="openButton">►</button>
         <div>
             <label for="wrapColor">Wrap Color:</label>
             <input type="color" id="wrapColor" name="wrapColor" value="#ff0000">
@@ -53,9 +55,9 @@
         </div>
         <div>
             <label for="threshold">Threshold</label>
-            <input type="range" id="threshold" name="threshold" min="0" max="1" step="0.01" value="0.5">
+            <input type="range" id="threshold" name="threshold" min="0" max="1" step="0.01" value="0.8">
         </div>
-        <input type="file" name="fletchingShape" id="fletchingShape">
+        <input type="file" accept="image/*" name="fletchingShape" id="fletchingShape">
         <div>
             <div>
                 <label for="fletchingSize">Size Of Fletching:</label>

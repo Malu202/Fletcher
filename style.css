@@ -32,6 +32,17 @@ input[type=number] {
 }
 
 #fletchingShapePreview {
-    width: 128px;
-    height: 96px;
+    width: 256px;
+    height: 200px;
+}
+
+#closeButton,
+#openButton {
+    position: absolute;
+    top: 50%;
+    right: -15px;
+    height: 50px;
+}
+#openButton {
+    display: none;
 }
